@@ -17,12 +17,14 @@ final _backgroundColor = Colors.green[100];
 /// While it is named CategoryRoute, a more apt name would be CategoryScreen,
 /// because it is responsible for the UI at the route's destination.
 // TODO: Make CategoryRoute a StatefulWidget
-class CategoryRoute extends StatelessWidget {
+class CategoryRoute extends StatefulWidget {
   const CategoryRoute();
 
   // TODO: Create State object for the CategoryRoute
+  @override
+  createState() => _CategoryRouteState();
 
-  static const _categoryNames = <String>[
+  const _categoryNames = <String>[
     'Length',
     'Area',
     'Volume',
@@ -33,7 +35,7 @@ class CategoryRoute extends StatelessWidget {
     'Currency',
   ];
 
-  static const _baseColors = <Color>[
+  const _baseColors = <Color>[
     Colors.teal,
     Colors.orange,
     Colors.pinkAccent,
@@ -43,7 +45,26 @@ class CategoryRoute extends StatelessWidget {
     Colors.purpleAccent,
     Colors.red,
   ];
+}
 
+class _CategoryRouteState extends State<CategoryRoute> {
+  Widget categories;
+
+  @override
+  initState() {
+    final list = <Category>[];
+
+    for (var i = 0; i < widget._categoryNames.length; i++) {
+      list.add(Category(
+        name: widget._categoryNames[i],
+        color: widget._baseColors[i],
+        iconLocation: Icons.cake,
+        units: _retrieveUnitList(widget._categoryNames[i]),
+      ));
+    }
+
+    categories = _buildCategoryWidgets(list);
+  }
   /// Makes the correct number of rows for the list view.
   ///
   /// For portrait, we use a [ListView].
@@ -72,21 +93,11 @@ class CategoryRoute extends StatelessWidget {
     // the list at initialization (in initState()).
     // This way, you also don't have to pass in the list of categories to
     // _buildCategoryWidgets()
-    final categories = <Category>[];
-
-    for (var i = 0; i < _categoryNames.length; i++) {
-      categories.add(Category(
-        name: _categoryNames[i],
-        color: _baseColors[i],
-        iconLocation: Icons.cake,
-        units: _retrieveUnitList(_categoryNames[i]),
-      ));
-    }
 
     final listView = Container(
       color: _backgroundColor,
       padding: EdgeInsets.symmetric(horizontal: 8.0),
-      child: _buildCategoryWidgets(categories),
+      child: categories,
     );
 
     final appBar = AppBar(
