@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 
 import 'unit.dart';
+import 'formatters.dart';
 
 const _padding = EdgeInsets.all(16.0);
 
@@ -38,12 +39,27 @@ class ConverterRoute extends StatefulWidget {
 }
 
 class _ConverterRouteState extends State<ConverterRoute> {
-  // TODO: Set some variables, such as for keeping track of the user's input
+  // Set some variables, such as for keeping track of the user's input
   // value and units
+  double _inputValue;
+  Unit inputUnit, outputUnit;
 
-  // TODO: Determine whether you need to override anything, such as initState()
+  final Widget compareIcon = Center(
+    child: Transform(
+      child: Icon(Icons.compare_arrows),
+      transform: Matrix4.rotationX(20),
+    ),
+  );
 
-  // TODO: Add other helper functions. We've given you one, _format()
+  // Determine whether you need to override anything, such as initState()
+  @override
+  initState() {
+    super.initState();
+    inputUnit = widget.units[0];
+    outputUnit = widget.units[1];
+  }
+
+  // Add other helper functions. We've given you one, _format()
 
   /// Clean up conversion; trim trailing zeros, e.g. 5.500 -> 5.5, 10.0 -> 10
   String _format(double conversion) {
@@ -63,39 +79,101 @@ class _ConverterRouteState extends State<ConverterRoute> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Create the 'input' group of widgets. This is a Column that
+    // Create the 'input' group of widgets. This is a Column that
     // includes the input value, and 'from' unit [Dropdown].
-
-    // TODO: Create a compare arrows icon.
-
-    // TODO: Create the 'output' group of widgets. This is a Column that
-    // includes the output value, and 'to' unit [Dropdown].
-
-    // TODO: Return the input, arrows, and output widgets, wrapped in a Column.
-
-    // TODO: Delete the below placeholder code.
-    final unitWidgets = widget.units.map((Unit unit) {
-      return Container(
-        color: widget.color,
-        margin: EdgeInsets.all(8.0),
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            Text(
-              unit.name,
-              style: Theme.of(context).textTheme.headline,
-            ),
-            Text(
-              'Conversion: ${unit.conversion}',
-              style: Theme.of(context).textTheme.subhead,
-            ),
-          ],
-        ),
+    List<DropdownMenuItem<Unit>> unitsList = widget.units.map((unit) {
+      return DropdownMenuItem(
+        value: unit,
+        child: Text(unit.name),
       );
     }).toList();
 
-    return ListView(
-      children: unitWidgets,
+    Widget input = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          maxLines: 1,
+          maxLength: 14,
+          inputFormatters: [
+            DecimalTextFormatter(),
+          ],
+          keyboardType: TextInputType.numberWithOptions(),
+          decoration: InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Input',
+            labelStyle: TextStyle(fontSize: 22.0),
+          ),
+          onChanged: (String input) {
+            setState(() {
+              _inputValue = double.parse(input);
+            });
+          },
+        ),
+        DropdownButton<Unit>(
+          isExpanded: true,
+          value: inputUnit,
+          items: unitsList,
+          onChanged: (unit) {
+            setState(() {
+              inputUnit = unit;
+            });
+          },
+        ),
+      ],
+    );
+
+    // Create a compare arrows icon.
+    Widget compareIcon = Center(
+      child: Padding(
+        padding: _padding,
+        child: RotatedBox(
+          quarterTurns: 1,
+          child: Icon(
+            Icons.compare_arrows,
+            size: 40.0,
+          ),
+        ),
+      ),
+    );
+
+    // Create the 'output' group of widgets. This is a Column that
+    double outputValue = _inputValue == null
+      ? 0
+      : _inputValue / inputUnit.conversion * outputUnit.conversion;
+    Widget output = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: _padding,
+          decoration: BoxDecoration(
+            border: Border.all(),
+            borderRadius: new BorderRadius.circular(4),
+          ),
+          child: Text(_format(outputValue)),
+        ),
+        DropdownButton<Unit>(
+          isExpanded: true,
+          value: outputUnit,
+          items: unitsList,
+          onChanged: (unit) {
+            setState(() {
+              outputUnit = unit;
+            });
+          },
+        ),
+      ],
+    );
+
+    // Return the input, arrows, and output widgets, wrapped in a Column.
+    return Container(
+      padding: _padding,
+      child: Column(
+        children: [
+          input,
+          compareIcon,
+          output,
+        ],
+      ),
     );
   }
 }
